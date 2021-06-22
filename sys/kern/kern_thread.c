@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>
+#include <sys/sched_petri.h>
 #include <sys/rangelock.h>
 #include <sys/resourcevar.h>
 #include <sys/sdt.h>
@@ -76,7 +77,7 @@ __FBSDID("$FreeBSD$");
  * structures.
  */
 #ifdef __amd64__
-_Static_assert(offsetof(struct thread, td_flags) == 0xe4,
+/*_Static_assert(offsetof(struct thread, td_flags) == 0xe4,
     "struct thread KBI td_flags");
 _Static_assert(offsetof(struct thread, td_pflags) == 0xec,
     "struct thread KBI td_pflags");
@@ -93,7 +94,7 @@ _Static_assert(offsetof(struct proc, p_filemon) == 0x3c0,
 _Static_assert(offsetof(struct proc, p_comm) == 0x3d0,
     "struct proc KBI p_comm");
 _Static_assert(offsetof(struct proc, p_emuldata) == 0x4a0,
-    "struct proc KBI p_emuldata");
+    "struct proc KBI p_emuldata");*/
 #endif
 #ifdef __i386__
 _Static_assert(offsetof(struct thread, td_flags) == 0x8c,
@@ -115,7 +116,6 @@ _Static_assert(offsetof(struct proc, p_comm) == 0x274,
 _Static_assert(offsetof(struct proc, p_emuldata) == 0x2f4,
     "struct proc KBI p_emuldata");
 #endif
-
 SDT_PROVIDER_DECLARE(proc);
 SDT_PROBE_DEFINE(proc, , , lwp__exit);
 
@@ -412,6 +412,7 @@ thread_alloc(int pages)
 	}
 	cpu_thread_alloc(td);
 	vm_domain_policy_init(&td->td_vm_dom_policy);
+	init_petri_thread(td);
 	return (td);
 }
 
